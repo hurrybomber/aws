@@ -1,8 +1,20 @@
-
-
 import boto3
-client = boto3.client('iam')
-response = client.create_role(
-response = client.attach_role_policy(
-    RoleName='S3DynamoDBPolicya', PolicyArn='<arn:aws:iam::117200066118:policy/S3DynamoDBPolicy>')
+import json
+iam = boto3.client('iam')
+assume_role_policy_document = json.dumps({
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+        "Effect": "Allow",
+        "Principal": {
+            "Service": "lambda.amazonaws.com"
+        },
+        "Action": "sts:AssumeRole"
+        }
+    ]
+})
+
+create_role_response = iam.create_role(
+    RoleName='maaaaay-role-name',
+    AssumeRolePolicyDocument=assume_role_policy_document
 )
