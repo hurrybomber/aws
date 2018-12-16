@@ -6,18 +6,18 @@ role = {}
 s3 = boto3.client('s3')
 
 
-def create_function(name, zfile,lsize=512, timeout=10, update=False):
+def create_function(name, zfile, lsize=512, timeout=10, update=False):
     triggername = "{0}-Trigger".format(name)
-    role['Arn']=''
+    role['Arn']='arn:aws:iam::117200066118:role/S3DynamoDBPolicyaa'
     with open(zfile, 'rb') as zipfile:
         if name in [f['FunctionName'] for f in l.list_functions()['Functions']]:
             if update:
                 print('Updating %s lambda function code' % (name))
-                return l.update_function_code(FunctionName=name, ZipFile=zipfile.red())
+                return l.update_function_code(FunctionName=name, ZipFile=zipfile.read())
             else:
                 print('No')
                 for f in funcs:
-                    if f ['FunctionName'] == name:
+                    if f['FunctionName'] == name:
                         lfunc = f
                     else:
                         print('Creating')
@@ -25,7 +25,7 @@ def create_function(name, zfile,lsize=512, timeout=10, update=False):
                             FunctionName=name,
                             Runtime='python3.6',
                             Role=role['Arn'],
-                            Hnadler='LoadPermitData.handler',
+                            Hnadler='lambda.handler',
                             Description='1',
                             Timeout=timeout,
                             MemorySize=lsize,
@@ -33,19 +33,19 @@ def create_function(name, zfile,lsize=512, timeout=10, update=False):
                             Code={'ZipFile': zipfile.read()},
                         )
                         permissionResponse = l.add_permission(
-                            FunctionName='',
+                            FunctionName='lambda',
                             StatementID="{0}-Event".format(triggername),
                             Action='lambda:InvokeFunction',
                             Principal='s3.amazonaws.com',
-                            SourceArn=''
+                            SourceArn='arn:aws:s3:::test-34'
                         )
                         print(permissionResponse)
 
-                              response = s3.put_bucket_notification_confugaration(
-                                  Bucket='',
+                        response = s3.put_bucket_notification_confugaration(
+                                  Bucket='test-34',
                                   NotificationConfiguration = {'LambdaFunctionConfigurations':[
                                       {
-                                          'LambdaFunctionArn':'',
+                                          'LambdaFunctionArn':'arn:aws:lambda:us-west-2:117200066118:function:loadPermitData3',
                                           'Events':[
                                               's3:objectCreated:*'
                                           ]
@@ -53,5 +53,6 @@ def create_function(name, zfile,lsize=512, timeout=10, update=False):
                                   ]})
                         lfunc['Role'] = role
                     return lfunc
-            name = 'LoadPermitData'
-                    lfunc = create_function(name, 'lambda.zip', update=True)
+
+            name = 'lambda'
+            lfunc = create_function(name, 'lambda.zip', update=True)
