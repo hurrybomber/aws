@@ -1,0 +1,90 @@
+import json
+
+import boto3
+
+
+# Create IAM client
+iam = boto3.client('iam')
+
+# Create a policy
+my_managed_policy = {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "logs:CreateLogGroup",
+            "Resource": "*"
+
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:DeleteItem",
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:Scan",
+                "dynamodb:UpdateItem"
+            ],
+            "Resource": "*"
+        },
+{
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "*"
+    }
+
+    ]
+}
+print("Choose policy name:")
+PName = input()
+response = iam.create_policy(
+  PolicyName=PName,
+  PolicyDocument=json.dumps(my_managed_policy)
+)
+assume_role_policy_document = json.dumps({
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+        "Effect": "Allow",
+        "Principal": {
+            "Service": "lambda.amazonaws.com"
+        },
+        "Action": "sts:AssumeRole"
+
+        }
+    ]
+}
+)
+print("Choose role name:")
+RName = input()
+create_role_response = iam.create_role(
+    RoleName=RName,
+    AssumeRolePolicyDocument=assume_role_policy_document
+)
+print("Pls copy your policy Arn link:")
+PArn = input()
+iam.attach_role_policy(
+    PolicyArn=PArn,
+    RoleName=RName
+)
+print("Pls copy your role Arn link:")
+RArn = input()
+print("Choose Lambda function name:")
+FName = input()
+lambda_client = boto3.client('lambda')
+iam_client = boto3.client('iam')
+with open ('lambda.zip', 'rb') as f:
+    zipped_code = f.read()
+    role = iam_client.get_role(RoleName=RName)
+    lambda_client.create_function(
+        FunctionName=FName,
+        Runtime='python3.6',
+        Role=RArn,
+        Handler='lambda.handler',
+        Code=dict(ZipFile=zipped_code),
+        Timeout=308,
+    )
