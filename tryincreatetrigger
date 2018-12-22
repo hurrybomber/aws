@@ -1,0 +1,12 @@
+new_trigger = {
+  "lambda_triggers": [
+    {
+      "type": "s3",
+      "bucket": "test-34",
+      "events": [
+        "s3:ObjectCreated:*"
+      ],
+      "prefix": "",
+      "suffix": ".json"
+    }
+    ]
